@@ -1,0 +1,146 @@
+/* ROUND BUTTON */
+/* FLOAT BUTTON */
+#ai-btn{
+  position:fixed;
+  right:25px;
+  bottom:25px;
+  width:70px;
+  height:70px;
+  background:#0a6b4e;
+  color:white;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  font-size:13px;
+  font-weight:bold;
+  cursor:pointer;
+  box-shadow:0 8px 25px rgba(0,0,0,0.25);
+  z-index:9999;
+  transition:0.3s;
+}
+
+#ai-btn:hover{
+  transform:scale(1.08);
+}
+
+
+/* CHAT WINDOW (SMALL SIZE) */
+#chatbox{
+  position:fixed;
+  right:25px;
+  bottom:110px;
+
+  width:320px;      /* 👈 smaller width */
+  height:420px;     /* 👈 smaller height */
+
+  background:white;
+  border-radius:18px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.3);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+  z-index:9999;
+}
+
+
+/* HEADER */
+#chat-header{
+  background:#0a6b4e;
+  color:white;
+  padding:12px 15px;
+  font-weight:bold;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:15px;
+}
+
+#close-chat{
+  cursor:pointer;
+  font-size:18px;
+}
+
+
+/* MESSAGES AREA */
+#chat-messages{
+  flex:1;
+  padding:12px;
+  overflow-y:auto;
+  background:#f4f6f8;
+}
+
+
+/* USER MESSAGE */
+.user{
+  background:#ff9800;
+  color:white;
+  padding:10px 14px;
+  border-radius:14px 14px 2px 14px;
+  margin:8px 0;
+  width:fit-content;
+  max-width:80%;
+  margin-left:auto;
+}
+
+
+/* BOT MESSAGE */
+.bot{
+  background:#e5e7eb;
+  color:#222;
+  padding:10px 14px;
+  border-radius:14px 14px 14px 2px;
+  margin:8px 0;
+  width:fit-content;
+  max-width:80%;
+}
+
+
+/* INPUT AREA */
+#chat-input-area{
+  display:flex;
+  padding:10px;
+  border-top:1px solid #ddd;
+  gap:8px;
+}
+
+#chat-input{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  outline:none;
+}
+
+#send-btn{
+  background:#0a6b4e;
+  color:white;
+  border:none;
+  padding:10px 16px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+#send-btn:hover{
+  background:#08563f;
+}
+
+/* MESSAGES */
+.user{
+  background:#ff9800;
+  color:white;
+  padding:8px 12px;
+  border-radius:12px;
+  margin:6px 0;
+  max-width:80%;
+  align-self:flex-end;
+}
+
+.bot{
+  background:#e0e0e0;
+  padding:8px 12px;
+  border-radius:12px;
+  margin:6px 0;
+  max-width:80%;
+}

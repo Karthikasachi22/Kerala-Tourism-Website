@@ -1,0 +1,113 @@
+body{
+  margin:0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background:#f3f7f6;
+}
+
+/* HERO HEADER */
+.planner-hero{
+  height:260px;
+  background:url("https://images.unsplash.com/photo-1602216056096-3b40cc0c9944") center/cover no-repeat;
+  position:relative;
+}
+
+.planner-overlay{
+  background:rgba(0,0,0,0.45);
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  color:white;
+  text-align:center;
+}
+
+.planner-overlay h1{
+  font-size:42px;
+  margin:0;
+}
+
+.planner-overlay p{
+  font-size:18px;
+}
+
+/* CARD */
+.planner-card{
+  width:80%;
+  margin:-60px auto 20px auto;
+  background:white;
+  padding:25px;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* FORM */
+.form-row{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  align-items:end;
+  justify-content:center;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+}
+
+.field label{
+  font-weight:600;
+  margin-bottom:6px;
+}
+
+.field select,
+.field input{
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  min-width:180px;
+  font-size:15px;
+}
+
+.button-field{
+  justify-content:end;
+}
+
+button#generate{
+  background:#0a6b4e;
+  color:white;
+  border:none;
+  padding:12px 22px;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button#generate:hover{
+  background:#084f3a;
+}
+
+/* RESULT */
+#result{
+  margin-top:30px;
+}
+
+/* DAY CARD */
+.day-card{
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  margin:20px auto;
+  width:60%;
+  box-shadow:0 8px 25px rgba(0,0,0,0.15);
+}
+
+.day-card h3{
+  color:#0a6b4e;
+}
+
+.day-card p{
+  font-size:16px;
+  margin:10px 0;
+}

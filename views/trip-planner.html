@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kerala AI Trip Planner</title>
+
+<link rel="stylesheet" href="/css/navigation.css">
+<link rel="stylesheet" href="/css/tripplanner.css">
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div id="nav-container"></div>
+
+<!-- HEADER -->
+<div class="planner-hero">
+  <div class="planner-overlay">
+    <h1>🧭 Kerala Smart Trip Planner</h1>
+    <p>Plan your perfect Kerala journey in seconds</p>
+  </div>
+</div>
+
+<!-- PLANNER CARD -->
+<div class="planner-card">
+
+  <div class="form-row">
+
+    <div class="field">
+      <label>District</label>
+      <select id="district">
+  <option>Loading districts...</option>
+</select>
+    </div>
+
+    <div class="field">
+      <label>Days</label>
+      <input id="days" type="number" value="2" min="1" max="7">
+    </div>
+
+    <div class="field">
+      <label>Interest</label>
+      <select id="interest">
+  <option>Nature</option>
+  <option>Beaches</option>
+  <option>Hill Stations</option>
+  <option>Wildlife</option>
+  <option>Culture & Temples</option>
+  <option>Adventure</option>
+  <option>Photography</option>
+  <option>Family Trip</option>
+  
+</select>
+    </div>
+
+    <div class="field button-field">
+      <button id="generate-btn">Generate Plan</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="itinerary-result"></div>
+
+<script src="/js/tripplanner.js"></script>
+
+<script>
+fetch("/navigation.html")
+.then(r => r.text())
+.then(html => document.getElementById("nav-container").innerHTML = html);
+</script>
+
+</body>
+</html>

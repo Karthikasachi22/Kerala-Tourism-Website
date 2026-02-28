@@ -5,6 +5,9 @@
   <title>Kerala Tourism Guide</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
+<!-- AI CHATBOT -->
+
+
 <body>
   
 
@@ -54,11 +57,7 @@
 <footer class="footer">
   © 2026 Kerala Tourism Guide Platform
 </footer>
-<iframe 
-  src="/chatbot.html"
-  allow="autoplay; microphone"
-  style="position:fixed;bottom:0;right:0;width:360px;height:420px;border:none;z-index:9999;">
-</iframe>
+
 
 <script>
 fetch("/navigation.html")
@@ -76,7 +75,26 @@ fetch("/navigation.html")
   .then(r => r.text())
   .then(html => document.getElementById("nav-container").innerHTML = html);
 </script>
-pt>
 
+
+<!-- CHATBOT CONTAINER (REQUIRED) -->
+<div id="chatbot-container"></div>
+
+<script>
+fetch("/chatbot.html")
+.then(res => res.text())
+.then(html => {
+  document.getElementById("chatbot-container").innerHTML = html;
+
+  const script = document.createElement("script");
+  script.src = "/js/chatbot.js";
+  document.body.appendChild(script);
+});
+</script>
+
+<!-- LEFT SIDE TRIP PLANNER BUTTON -->
+<a href="/trip-planner" id="trip-side-btn">
+  🧭<br>Trip<br>Planner
+</a>
 </body>
 </html>

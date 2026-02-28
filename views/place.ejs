@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= place.name %></title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+
+    .rating-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .rating-number {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1a73e8;
+    }
+
+    .stars {
+      font-size: 20px;
+      color: #fbbc04;
+    }
+
+    .reviews {
+      color: #555;
+      font-size: 14px;
+    }
+
+    .rate-buttons button {
+      font-size: 18px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #fbbc04;
+    }
+
+    .rate-buttons button:hover {
+      transform: scale(1.2);
+    }
+
+    ul {
+      margin-left: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1><%= place.name %></h1>
+
+  <img src="<%= place.image %>" alt="<%= place.name %>">
+
+  <!-- ⭐ Rating Display -->
+  <div class="rating-box">
+    <span class="rating-number" id="ratingValue">New</span>
+    <span class="stars" id="stars">☆☆☆☆☆</span>
+    <span class="reviews" id="reviewCount">(0 reviews)</span>
+  </div>
+
+  <!-- ⭐ Rating Buttons -->
+  <div class="rate-buttons">
+    <button onclick="rate(5)">★★★★★</button>
+    <button onclick="rate(4)">★★★★☆</button>
+    <button onclick="rate(3)">★★★☆☆</button>
+    <button onclick="rate(2)">★★☆☆☆</button>
+    <button onclick="rate(1)">★☆☆☆☆</button>
+  </div>
+
+  <h3>Description</h3>
+  <p><%= place.description %></p>
+
+  <h3>How to Reach</h3>
+  <ul>
+    <li><strong>Road:</strong> <%= place.reach.road %></li>
+    <li><strong>Train:</strong> <%= place.reach.train %></li>
+    <li><strong>Flight:</strong> <%= place.reach.flight %></li>
+  </ul>
+
+  <h3>Activities</h3>
+  <ul>
+    <% place.activities.forEach(activity => { %>
+      <li><%= activity %></li>
+    <% }) %>
+  </ul>
+
+  <script>
+    const key = "rating_<%= place.ratingKey || place.slug %>";
+
+    function loadRatings() {
+      const ratings = JSON.parse(localStorage.getItem(key)) || [];
+
+      if (ratings.length === 0) return;
+
+      const avg = (ratings.reduce((a,b)=>a+b,0) / ratings.length).toFixed(1);
+
+      document.getElementById("ratingValue").innerText = avg;
+      document.getElementById("reviewCount").innerText =
+        `(${ratings.length} reviews)`;
+
+      let stars = "";
+      for (let i = 1; i <= 5; i++) {
+        stars += avg >= i ? "★" : "☆";
+      }
+
+      document.getElementById("stars").innerText = stars;
+    }
+
+    function rate(value) {
+      const ratings = JSON.parse(localStorage.getItem(key)) || [];
+      ratings.push(value);
+      localStorage.setItem(key, JSON.stringify(ratings));
+      loadRatings();
+      alert("Thank you for rating ⭐");
+    }
+
+    loadRatings();
+  </script>
+
+</body>
+</html>
