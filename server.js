@@ -594,14 +594,12 @@ app.post("/login", async (req, res) => {
 /* ===============================
    CHATBOT API
 ================================ */
-<<<<<<< HEAD
-=======
 app.get("/logout", (req,res)=>{
   req.session.destroy(()=>{
     res.redirect("/login.html");
   });
 });
->>>>>>> aa489df4e5e754e3a30c1e293f4e12a0fe7d295a
+
 app.post("/api/chat", async (req, res) => {
   try {
 
@@ -616,7 +614,6 @@ app.post("/api/chat", async (req, res) => {
     });
 
     const aiReply = completion.choices[0].message.content;
-
     // ⭐ SAVE CHAT TO DATABASE HERE ⭐
     const chat = new ChatHistory({
       userId: req.session.user ? req.session.user._id : null,
