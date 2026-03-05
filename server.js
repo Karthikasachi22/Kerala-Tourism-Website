@@ -1,20 +1,31 @@
-require("dotenv").config();
 
+const User = require("./models/user");
+const Trip = require("./models/trip");
+const Favorite = require("./models/favorite");
+const ChatHistory = require("./models/chatHistory");
+const Place = require("./models/place");
+
+
+require("dotenv").config();
+console.log("ENV KEY:", process.env.OPENAI_API_KEY);
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const express = require("express");
 const path = require("path");
-const OpenAI = require("openai");
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+
+const Groq = require("groq-sdk");
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY
 });
 
 const trivandrumPlaces = require("./data/trivandrum");
 const kollamPlaces = require("./data/kollam");
 const alappuzhaPlaces = require("./data/alappuzha");
 const pathanamthittaPlaces = require("./data/pathanamthitta");
+
+
 // 🔑 Combined place list for chatbot & itinerary
 // ===== DISTRICTS (DECLARE ONCE) =====
 const DISTRICTS = [
@@ -64,7 +75,6 @@ const normalizedPlacesByDistrict = {
   idukki: []
 };
 
-const User = require("./models/user");
 
 // ===== DEBUG (KEEP THIS) =====
 
@@ -85,7 +95,8 @@ mongoose.connect("mongodb://127.0.0.1:27017/keralaTourismDB")
 .catch(err=>console.log(err));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
+
 /* ===============================
    SESSION LOGIN
 ================================ */
@@ -99,9 +110,7 @@ app.use(session({
   cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day
 }));
 /* DISTRICT LIST FOR TRIP PLANNER */
-app.get("/api/districts", (req, res) => {
-  res.json(Object.keys(normalizedPlacesByDistrict));
-});
+
 app.use((req,res,next)=>{
   console.log("REQUEST:", req.method, req.url);
   next();
@@ -109,10 +118,61 @@ app.use((req,res,next)=>{
 /* ===============================
    HOME (STATIC)
 ================================ */
+// LOGIN PROTECTION MIDDLEWARE
+// ROOT ROUTE
 app.get("/", (req, res) => {
+  if (req.session.user) {
+    res.redirect("/home");
+  } else {
+    res.redirect("/login.html");
+  }
+});
+// GLOBAL AUTH PROTECTION
+app.use((req, res, next) => {
+
+  // allow static files
+  if (
+    req.path.startsWith("/css/") ||
+    req.path.startsWith("/js/") ||
+    req.path.startsWith("/images/") ||
+    req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico)$/)
+  ) {
+    return next();
+  }
+
+  // public routes (no login required)
+  const publicRoutes = [
+    "/login.html",
+    "/signup.html",
+    "/login",
+    "/signup",
+    "/"
+  ];
+
+  if (publicRoutes.includes(req.path)) {
+    return next();
+  }
+
+  // everything else requires login
+  if (!req.session.user) {
+    return res.redirect("/login.html");
+  }
+
+  next();
+});
+// HOME PAGE (after login)
+app.get("/home", (req, res) => {
+  if (!req.session.user) {
+    return res.redirect("/login.html");
+  }
   res.sendFile(path.join(__dirname, "views", "index.html"));
 });
+// BLOCK DIRECT ACCESS TO index.html
+app.get("/index.html", (req, res) => {
+  return res.redirect("/");
+});
 
+  
 /* ===============================
    DESTINATIONS (STATIC)
 ================================ */
@@ -184,6 +244,7 @@ app.get("/place/:slug", (req, res) => {
 <html>
 <head>
 <title>${p.name}</title>
+
 <style>
 body{font-family:Arial;background:#f8f4ef;margin:0}
 .back{margin:20px;padding:10px 18px;background:#0a6b4e;color:#fff;border:none;border-radius:20px}
@@ -197,6 +258,7 @@ iframe{width:95%;height:320px;border:none;border-radius:16px;margin:18px auto;di
 .activity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
 .activity-card{background:#f1f9f7;padding:16px;border-radius:14px;font-weight:600}
 </style>
+
 </head>
 <body>
 
@@ -230,6 +292,7 @@ iframe{width:95%;height:320px;border:none;border-radius:16px;margin:18px auto;di
 
 <div class="section">
   <h3>Nearby Essentials</h3>
+
   <div class="tab-buttons" id="nearbyTabs">
     <button class="active" onclick="showNearby('food',this)">Food</button>
     <button onclick="showNearby('stay',this)">Stay</button>
@@ -237,12 +300,46 @@ iframe{width:95%;height:320px;border:none;border-radius:16px;margin:18px auto;di
     <button onclick="showNearby('atm',this)">ATM</button>
     <button onclick="showNearby('hospital',this)">Hospital</button>
   </div>
+
   <div id="listBox"></div>
 </div>
 
+<!-- MAP -->
 <iframe id="nearbyMap"></iframe>
 
- <script>
+<!-- ⭐ SAVE PLACE SECTION -->
+<div class="section" style="text-align:center">
+
+  <h2>⭐ Save This Place</h2>
+
+  <button onclick="addFavorite()" style="
+    background:#ff4d4d;
+    color:white;
+    padding:12px 24px;
+    border:none;
+    border-radius:10px;
+    margin-right:15px;
+    font-weight:bold;
+    cursor:pointer;
+  ">
+    ❤️ Add to Favorites
+  </button>
+
+  <button onclick="saveTrip()" style="
+    background:#0a6b4e;
+    color:white;
+    padding:12px 24px;
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+  ">
+    💾 Save Trip
+  </button>
+
+</div>
+
+<script>
 const reach = ${JSON.stringify(p.reach)};
 const data = ${JSON.stringify({
   food: p.food,
@@ -264,15 +361,12 @@ function showNearby(t,b){
   b.classList.add('active');
 
   listBox.innerHTML = data[t].map(i => {
-
-    // NORMAL ITEMS (Food, ATM, etc.)
     if (typeof i === "string") {
       return '<div class="item">' + i +
         '<button onclick="nearbyMap.src=\\'https://www.google.com/maps?q=' + i + '&output=embed\\'">📍</button>' +
         '</div>';
     }
 
-    // STAY ITEMS WITH BOOKING
     return '<div class="item">' + i.name +
       '<div>' +
       '<button onclick="nearbyMap.src=\\'https://www.google.com/maps?q=' + i.name + '&output=embed\\'">📍</button>' +
@@ -281,7 +375,6 @@ function showNearby(t,b){
       '</a>' +
       '</div>' +
       '</div>';
-
   }).join("");
 
   nearbyMap.src =
@@ -289,6 +382,29 @@ function showNearby(t,b){
 }
 
 showNearby('food', document.querySelector('#nearbyTabs button'));
+
+// ⭐ BUTTON FUNCTIONS
+function addFavorite() {
+
+  fetch("/api/favorite", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      placeName: "${p.name}"
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+  });
+
+}
+
+function saveTrip() {
+  alert("Trip Saved 💾");
+}
 </script>
 
 </body>
@@ -418,17 +534,21 @@ ${pathanamthittaPlaces.map(p=>`
 app.post("/signup", async (req, res) => {
   try {
 
-    const { name, email, password } = req.body;
+    let { name, email, password } = req.body;
 
-    // check existing
+    // FIX: normalize email
+    email = email.trim().toLowerCase();
+
+    // check existing user
     const existing = await User.findOne({ email });
     if(existing){
       return res.send("Email already registered");
     }
 
-    // encrypt password
+    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // create user
     const user = new User({
       name,
       email,
@@ -450,7 +570,10 @@ app.post("/signup", async (req, res) => {
 ================================ */
 app.post("/login", async (req, res) => {
 
-  const { email, password } = req.body;
+  let { email, password } = req.body;
+
+  // FIX: normalize email
+  email = email.trim().toLowerCase();
 
   const user = await User.findOne({ email });
 
@@ -466,58 +589,51 @@ app.post("/login", async (req, res) => {
 
   req.session.user = user;
 
-  res.redirect("/");
+  res.redirect("/home");
 });
-
 /* ===============================
-   LOGOUT
+   CHATBOT API
 ================================ */
+<<<<<<< HEAD
+=======
 app.get("/logout", (req,res)=>{
   req.session.destroy(()=>{
-    res.redirect("/");
+    res.redirect("/login.html");
   });
 });
+>>>>>>> aa489df4e5e754e3a30c1e293f4e12a0fe7d295a
 app.post("/api/chat", async (req, res) => {
   try {
 
     const userMessage = req.body.message;
-    const knowledgeBase = JSON.stringify(allPlaces).slice(0, 7000);
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
       messages: [
-        {
-          role: "system",
-          content: `
-You are a Kerala Tourism Travel Assistant.
-
-Help tourists explore Kerala.
-Recommend places, food, activities and travel tips.
-Create day-wise itineraries if asked.
-
-Tourism data:
-${knowledgeBase}
-
-Keep answers short and friendly.
-`
-        },
-        {
-          role: "user",
-          content: userMessage
-        }
-      ],
-      temperature: 0.7
+        { role: "system", content: "You are a Kerala Tourism Travel Assistant." },
+        { role: "user", content: userMessage }
+      ]
     });
 
+    const aiReply = completion.choices[0].message.content;
+
+    // ⭐ SAVE CHAT TO DATABASE HERE ⭐
+    const chat = new ChatHistory({
+      userId: req.session.user ? req.session.user._id : null,
+      message: userMessage,
+      reply: aiReply
+    });
+
+    await chat.save();
+
+    // Send reply to frontend
     res.json({
-      reply: completion.choices[0].message.content
+      reply: aiReply
     });
 
   } catch (error) {
     console.log(error);
-    res.json({
-      reply: "AI server error — check API key or billing."
-    });
+    res.json({ reply: "AI server error" });
   }
 });
 /* ===============================
@@ -558,6 +674,7 @@ app.post("/api/itinerary", (req, res) => {
 
   res.json({ plan });
 });
+
 /* ===============================
    DISTRICT API FOR TRIP PLANNER
 ================================ */
@@ -565,9 +682,108 @@ app.post("/api/itinerary", (req, res) => {
 app.get("/trip-planner", (req,res)=>{
   res.sendFile(path.join(__dirname,"views","trip-planner.html"));
 });
+
+<<<<<<< HEAD
+
+
+app.get("/add-nilambur", async (req, res) => {
+
+  const place = new Place({
+    name: "Nilambur Teak Museum",
+    district: "Malappuram",
+    description: "World's first teak museum showcasing the history of teak plantations.",
+    location: "Nilambur",
+    activities: [
+      "Museum visit",
+      "Teak plantation tour",
+      "Photography",
+      "Educational exhibits"
+    ]
+  });
+
+
+  /* ===============================
+   ADD FAVORITE PLACE
+================================ */
+app.post("/api/favorite", async (req, res) => {
+
+  if (!req.session.user) {
+    return res.json({ message: "Please login first" });
+  }
+
+  try {
+    const { placeName } = req.body;
+
+    const favorite = new Favorite({
+      userId: req.session.user._id,
+      placeName: placeName
+    });
+
+    await favorite.save();
+
+    res.json({ message: "Added to favorites ❤️" });
+
+  } catch (err) {
+    console.log(err);
+    res.json({ message: "Error saving favorite" });
+  }
+});
+
+  await place.save();
+
+  res.send("Nilambur Teak Museum added");
+});
+
+/* ===============================
+   GET ALL PLACES FROM DATABASE
+================================ */
+
+app.get("/api/places", async (req, res) => {
+  const places = await Place.find();
+  res.json(places);
+});
+
+
+=======
+>>>>>>> aa489df4e5e754e3a30c1e293f4e12a0fe7d295a
 /* ===============================
    START SERVER
 ================================ */
+
+app.get("/import-all-places", async (req, res) => {
+  try {
+
+    const allStaticPlaces = [
+      ...trivandrumPlaces,
+      ...kollamPlaces,
+      ...alappuzhaPlaces,
+      ...pathanamthittaPlaces
+    ];
+
+    for (let p of allStaticPlaces) {
+      await Place.create({
+        name: p.name,
+        district: p.district || "Unknown",
+        description: p.description,
+        location: p.location,
+        activities: p.activities,
+        image: p.image
+      });
+    }
+
+    res.send("✅ All places imported to database");
+
+  } catch (err) {
+    console.log(err);
+    res.send("Import error");
+  }
+});
+
+
+
 app.listen(PORT, () => {
   console.log("✅ Server running at http://localhost:3000");
 });
+
+
+
