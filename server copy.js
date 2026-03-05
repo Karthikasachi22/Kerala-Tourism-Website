@@ -74,9 +74,6 @@ const User = require("./models/user");
 
 const app = express();
 const PORT = 3000;
-app.get("/test", (req,res)=>{
-  res.send("It is working");
-});
 /* ===============================
    MONGODB CONNECTION
 ================================ */
@@ -525,7 +522,7 @@ Keep answers short and friendly.
 ================================ */
 app.post("/api/itinerary", (req, res) => {
 
-  const { district, days } = req.body;
+  const { district, days, interest } = req.body;
 
   const selectedDistrict = district.toLowerCase().trim();
   const totalDays = parseInt(days);
@@ -541,18 +538,18 @@ app.post("/api/itinerary", (req, res) => {
 
   for (let d = 1; d <= totalDays; d++) {
 
-    let dayPlaces = [];
+    let activities = [];
 
     for (let i = 0; i < 3; i++) {
       if (places[index]) {
-        dayPlaces.push(places[index]);
+        activities.push("Visit " + places[index].name);
         index++;
       }
     }
 
     plan.push({
       day: d,
-      places: dayPlaces
+      activities: activities.join(", ")
     });
   }
 
@@ -563,6 +560,9 @@ app.post("/api/itinerary", (req, res) => {
 ================================ */
 
 app.get("/trip-planner", (req,res)=>{
+  if(!req.session.user){
+    return res.redirect("/login.html");
+  }
   res.sendFile(path.join(__dirname,"views","trip-planner.html"));
 });
 /* ===============================
