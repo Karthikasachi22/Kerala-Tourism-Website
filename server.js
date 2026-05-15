@@ -176,15 +176,13 @@ app.get("/index.html", (req, res) => {
 /* ===============================
    DESTINATIONS (STATIC)
 ================================ */
-app.get("/destinations", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "destinations.html"));
-});
-app.get("/trip-planner", (req,res)=>{
-  res.sendFile(path.join(__dirname,"views","trip-planner.html"));
-});
 /* ===============================
    SEND ALL DISTRICTS TO FRONTEND
 ================================ */
+app.get("/destinations", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "destinations.html"));
+});
+
 app.get("/api/districts", (req, res) => {
   res.json(Object.keys(normalizedPlacesByDistrict));
 });
@@ -599,7 +597,6 @@ app.get("/logout", (req,res)=>{
     res.redirect("/login.html");
   });
 });
-
 app.post("/api/chat", async (req, res) => {
   try {
 
@@ -679,7 +676,6 @@ app.post("/api/itinerary", (req, res) => {
 app.get("/trip-planner", (req,res)=>{
   res.sendFile(path.join(__dirname,"views","trip-planner.html"));
 });
-
 app.get("/add-nilambur", async (req, res) => {
 
   const place = new Place({
@@ -701,10 +697,7 @@ app.get("/add-nilambur", async (req, res) => {
 });
 
 
-/* ===============================
-   ADD FAVORITE PLACE
-================================ */
-
+// ADD FAVORITE PLACE (separate route)
 app.post("/api/favorite", async (req, res) => {
 
   if (!req.session.user) {
@@ -730,17 +723,12 @@ app.post("/api/favorite", async (req, res) => {
 });
 
 
-/* ===============================
-   GET ALL PLACES FROM DATABASE
-================================ */
+
 
 app.get("/api/places", async (req, res) => {
   const places = await Place.find();
   res.json(places);
 });
-/* ===============================
-   START SERVER
-================================ */
 
 app.get("/import-all-places", async (req, res) => {
   try {
@@ -770,8 +758,6 @@ app.get("/import-all-places", async (req, res) => {
     res.send("Import error");
   }
 });
-
-
 
 app.listen(PORT, () => {
   console.log("✅ Server running at http://localhost:3000");
